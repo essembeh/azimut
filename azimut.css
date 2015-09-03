@@ -1,0 +1,14 @@
+#container {
+  height: 40%;
+  overflow-y: scroll;
+}
+#map {
+  height: 60%;
+}
+#auth {
+  margin-left: 20px;
+  height: 10%;
+}
+body {
+  padding-top: 50px;
+}
