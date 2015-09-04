@@ -242,13 +242,13 @@ function openShareDialog() {
             ' <div class="form-group"> ' +
             '  <label class="col-md-4 control-label" for="share-device">Latitude</label> ' +
             '  <div class="col-md-8"> ' +
-            '   <input id="share-latitude" name="share-latitude" type="text" placeholder="Your latitude" class="form-control input-md" required pattern="[0-9]+(\.[0-9]+)?" /> ' +
+            '   <input id="share-latitude" name="share-latitude" type="text" placeholder="Your latitude" class="form-control input-md" required pattern="-?[0-9]+(\.[0-9]+)?" /> ' +
             '  </div> ' +
             ' </div> ' +
             ' <div class="form-group"> ' +
             '  <label class="col-md-4 control-label" for="share-longitude">Longitude</label> ' +
             '  <div class="col-md-8"> ' +
-            '   <input id="share-longitude" name="share-longitude" type="text" placeholder="Your longitude" class="form-control input-md" required required pattern="[0-9]+(\.[0-9]+)?" /> ' +
+            '   <input id="share-longitude" name="share-longitude" type="text" placeholder="Your longitude" class="form-control input-md" required required pattern="-?[0-9]+(\.[0-9]+)?" /> ' +
             '  </div> ' +
             ' </div> ' +
             ' <input type="submit" hidden="true" />' +
