@@ -75,7 +75,7 @@ function updatePlaceName(tableRowId, latlon) {
 
 function logEvent(uid, event) {
     var date = new Date(event.timestamp * 1000);
-    var longDate = moment(date).format('YYYY/MM/DD HH:mm:ss');
+    var longDate = moment(date).format('LLL');
     var shortDate = moment(date).fromNow();
     var latlon = [event.latitude, event.longitude];
     var tableRowId = "event-" + uid;
