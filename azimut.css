@@ -1,14 +1,13 @@
-#container {
-  height: 40%;
-  overflow-y: scroll;
+.az-events {
+    height: 40%;
+    overflow-y: scroll;
 }
-#map {
-  height: 60%;
-}
-#auth {
-  margin-left: 20px;
-  height: 10%;
+.az-map {
+    height: 60%;
 }
 body {
-  padding-top: 50px;
+    padding-top: 50px;
+}
+input:valid {
+   box-shadow: 0 0 2px 0px green;
 }
