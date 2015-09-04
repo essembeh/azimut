@@ -193,8 +193,6 @@ function shareFormValidate(device, message, latitude, longitude) {
 }
 
 function shareFormSubmit() {
-    var dialog = this;
-    console.log(typeof dialog);
     var device = $.trim($("#share-device").val());
     var message = $.trim($("#share-message").val());
     var latitude = $("#share-latitude").val();
@@ -212,7 +210,6 @@ function shareFormSubmit() {
                 // Close modal
                 $("#share-modal").modal("hide");
                 refeshMap();
-                dialog.modal("hide");
             } else {
                 alert("Error sharing position (" + data.status + ")");
                 console.log(JSON.stringify(data));
@@ -230,13 +227,13 @@ function openShareDialog() {
             ' <div class="form-group"> ' +
             '  <label class="col-md-4 control-label" for="share-device">Name</label> ' +
             '  <div class="col-md-8"> ' +
-            '   <input id="share-device" name="share-device" type="text" placeholder="Your name" class="form-control input-md" required /> ' +
+            '   <input id="share-device" name="share-device" type="text" placeholder="Your name (12 characters max, no space)" class="form-control input-md" required pattern="[a-zA-Z0-9-_]{1,12}" /> ' +
             '  </div> ' +
             ' </div> ' +
             ' <div class="form-group"> ' +
             '  <label class="col-md-4 control-label" for="share-message">Message</label> ' +
             '  <div class="col-md-8"> ' +
-            '   <input id="share-message" name="share-message" type="text" placeholder="Your message" class="form-control input-md" required /> ' +
+            '   <input id="share-message" name="share-message" type="text" placeholder="You can leave a message (32 characters max)" class="form-control input-md" pattern=".{0,32}" /> ' +
             '  </div> ' +
             ' </div> ' +
             ' <div class="form-group"> ' +
