@@ -1,77 +1,85 @@
 <html>
 
 <head>
-  <title>:: Azimut ::</title>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <link rel="stylesheet" href="lib/bootstrap-3.3.5/css/bootstrap.min.css">
-  <link rel="stylesheet" href="lib/leaflet-0.7.5/leaflet.css" />
-  <link rel="stylesheet" href="azimut.css" />
+	<title>:: Azimut ::</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+	<link rel="stylesheet" href="lib/bootstrap-3.3.5/css/bootstrap.min.css">
+	<link rel="stylesheet" href="lib/leaflet-0.7.5/leaflet.css" />
+	<link rel="stylesheet" href="azimut.css" />
 </head>
 
 <body>
-  <!-- Fixed navbar -->
-  <nav class="navbar navbar-inverse navbar-default navbar-static-top">
-    <div class="container">
-      <div class="navbar-header">
-        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-          <span class="sr-only">Toggle navigation</span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-        </button>
-        <a class="navbar-brand" href="#">Azimut</a>
-      </div>
-      <div id="navbar" class="navbar-collapse collapse">
-        <ul class="nav navbar-nav">
-          <li>
-            <a href="#refresh" onclick="refeshMap();">
-              <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span>
-              Refresh map</a>
-          </li>
-          <li>
-            <a href="#share" onclick="openShareDialog();">
-              <span class="glyphicon glyphicon-pushpin" aria-hidden="true"></span>
-              Share location</a>
-          </li>
-        </ul>
-        <ul class="nav navbar-nav navbar-right">
-          <li>
-            <a href="http://github.com/essembeh/azimut" target="_blank">
-              <span class="glyphicon glyphicon-heart-empty" aria-hidden="true"></span>
-              About</a>
-          </li>
-        </ul>
-      </div>
-      <!--/.nav-collapse -->
-    </div>
-  </nav>
-  <div class="container">
-    <div class="az-map" id="map">
-    </div>
-  </div>
-  <div class="container">
-    <div class="az-events">
-      <table id="events" class="table table-hover table-bordered table-condensed">
-        <thead>
-          <tr>
-            <th><small>Date</small></th>
-            <th><small>Name</small></th>
-            <th><small>Location</small></th>
-            <th><small>Message</small></th>
-          </tr>
-        </thead>
-        <tbody>
-        </tbody>
-      </table>
-    </div>
-  </div>
-  <script src="lib/jquery-2.1.4.min.js"></script>
-  <script src="lib/bootstrap-3.3.5/js/bootstrap.min.js"></script>
-  <script src="lib/leaflet-0.7.5/leaflet.js"></script>
-  <script src="lib/bootbox-4.4.0.min.js"></script>
-  <script src="lib/moment-2.10.6.min.js"></script>
-  <script src="azimut.js"></script>
+	<!-- Fixed navbar -->
+	<nav class="navbar navbar-inverse navbar-default navbar-static-top">
+		<div class="container">
+			<div class="navbar-header">
+				<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+					<span class="sr-only">Toggle navigation</span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</button>
+				<a class="navbar-brand" href="#">Azimut</a>
+			</div>
+			<div id="navbar" class="navbar-collapse collapse">
+				<ul class="nav navbar-nav">
+					<li>
+						<a href="#refresh" onclick="refeshMap();">
+							<span class="glyphicon glyphicon-refresh" aria-hidden="true"></span>
+							Refresh map</a>
+					</li>
+					<li>
+						<a href="#share" onclick="openShareDialog();">
+							<span class="glyphicon glyphicon-pushpin" aria-hidden="true"></span>
+							Share location</a>
+					</li>
+				</ul>
+				<ul class="nav navbar-nav navbar-right">
+					<li>
+						<a href="http://github.com/essembeh/azimut" target="_blank">
+							<span class="glyphicon glyphicon-heart-empty" aria-hidden="true"></span>
+							About</a>
+					</li>
+				</ul>
+			</div>
+			<!--/.nav-collapse -->
+		</div>
+	</nav>
+	<div class="container">
+		<div class="az-map" id="map">
+		</div>
+	</div>
+	<div class="container">
+		<div class="az-events">
+			<table id="events" class="table table-hover table-bordered table-condensed">
+				<thead>
+					<tr>
+						<th>
+							<small>Date</small>
+						</th>
+						<th>
+							<small>Name</small>
+						</th>
+						<th>
+							<small>Location</small>
+						</th>
+						<th>
+							<small>Message</small>
+						</th>
+					</tr>
+				</thead>
+				<tbody>
+				</tbody>
+			</table>
+		</div>
+	</div>
+	<script src="lib/jquery-2.1.4.min.js"></script>
+	<script src="lib/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+	<script src="lib/leaflet-0.7.5/leaflet.js"></script>
+	<script src="lib/bootbox-4.4.0.min.js"></script>
+	<script src="lib/moment-2.10.6.min.js"></script>
+	<script src="azimut.js"></script>
 </body>
 
 </html>

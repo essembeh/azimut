@@ -1,10 +1,10 @@
 .az-events {
-    height: 38%;
-    overflow-y: scroll;
+  height: 38%;
+  overflow-y: scroll;
 }
 .az-map {
-    height: 50%;
+  height: 50%;
 }
 input:valid {
-   box-shadow: 0 0 2px 0px green;
+  box-shadow: 0 0 2px 0px green;
 }
