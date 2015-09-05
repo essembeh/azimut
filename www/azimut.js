@@ -15,10 +15,7 @@ var DEFAULT_SHARE_MESSAGE = "";
 var EVENTS = {};
 var MARKERS = {};
 var LOCATIONS = {};
-var MAP = L.map('map', {
-  center: POSITION_DEFAULT,
-  zoom: ZOOM_DEFAULT
-});
+var MAP;
 
 function getUrlParameter(key) {
   var pageUrl = decodeURIComponent(window.location.search.substring(1)),
@@ -121,7 +118,7 @@ function logEvent(uid, event) {
 
 }
 
-function refeshMap() {
+function refreshMap() {
   $.getJSON(REST_API_EVENTS, function(data) {
     if (data.status === "OK") {
       console.log("Received " + data.result.length + " events");
@@ -211,9 +208,9 @@ function shareFormSubmit() {
         console.log("Position shared");
         // Close modal
         $("#share-modal").modal("hide");
-        refeshMap();
-        DEFAULT_SHARE_USER=device;
-        DEFAULT_SHARE_MESSAGE=message;
+        refreshMap();
+        DEFAULT_SHARE_USER = device;
+        DEFAULT_SHARE_MESSAGE = message;
       } else {
         alert("Error sharing position (" + data.status + ")");
         console.log(JSON.stringify(data));
@@ -256,7 +253,7 @@ function openShareDialog() {
       '</form> </div>  </div>',
     buttons: {
       share: {
-        label: '<span class="glyphicon glyphicon-pushpin" aria-hidden="true"></span> Share location',
+        label: '<span class="glyphicon glyphicon-pushpin" aria-hidden="true"></span> Share',
         className: "btn-success",
         callback: function() {
           $('#share-form').find(':submit').click();
@@ -264,7 +261,7 @@ function openShareDialog() {
         }
       },
       gps: {
-        label: '<span class="glyphicon glyphicon-screenshot" aria-hidden="true"></span> Get coordinates',
+        label: '<span class="glyphicon glyphicon-screenshot" aria-hidden="true"></span> Position',
         className: "btn-primary",
         callback: function() {
           shareFormUpdatePosition();
@@ -291,17 +288,17 @@ function openShareDialog() {
 }
 
 // Init map
+MAP = L.map('map', {
+  center: POSITION_DEFAULT,
+  zoom: ZOOM_DEFAULT
+});
 L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=' + MAPBOX_TOKEN, {
   maxZoom: 18,
   attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
     '<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
     'Imagery &copy; <a href="http://mapbox.com">Mapbox</a>',
   id: 'mapbox.streets'
-}).addTo(MAP);
+}).on("load", refreshMap).addTo(MAP);
 
 // Refresh map every minute
-setInterval(function() {
-  refeshMap();
-}, 60000);
-
-refeshMap();
+setInterval(refreshMap, 2000);
