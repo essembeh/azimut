@@ -1,12 +1,9 @@
 .az-events {
-    height: 40%;
+    height: 38%;
     overflow-y: scroll;
 }
 .az-map {
-    height: 60%;
-}
-body {
-    padding-top: 50px;
+    height: 50%;
 }
 input:valid {
    box-shadow: 0 0 2px 0px green;

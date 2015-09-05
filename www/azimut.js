@@ -59,7 +59,7 @@ function revealElement(element) {
 
 function updatePlaceName(tableRowId, latlon) {
     if (LOCATIONS[latlon]) {
-        $("#" + tableRowId + " .az-event-place .az-event-place-name").html(LOCATIONS[latlon]);
+        $("#" + tableRowId + " .az-event-place .az-event-place-name").html("<small>" + LOCATIONS[latlon] + "</small>");
         $("#" + tableRowId + " .az-event-place .az-event-place-latlon").hide({
             duration: 500,
             complete: function() {
@@ -90,13 +90,13 @@ function logEvent(uid, event) {
     // Update table
 
     var html = '<tr id="' + tableRowId + '" onclick="revealElement(\'' + uid + '\')">' +
-        '<td class="az-event-date col-md-1"><abbr title="' + longDate + '">' + shortDate + '</abbr></td>' +
-        '<td class="az-event-device col-md-1">' + event.device + '</td>' +
+        '<td class="az-event-date col-md-1"><abbr title="' + longDate + '"><small>' + shortDate + '</small></abbr></td>' +
+        '<td class="az-event-device col-md-1"><small>' + event.device + '</small></td>' +
         '<td class="az-event-place col-md-4">' +
-        ' <span class="az-event-place-latlon">' + latlon + '</span>' +
+        ' <span class="az-event-place-latlon"><small>' + latlon + '</small></span>' +
         ' <span class="az-event-place-name" hidden="true"></span>' +
         '</td>' +
-        '<td class="az-event-message col-md-2">' + message + '</td>' +
+        '<td class="az-event-message col-md-2"><small>' + message + '</small></td>' +
         '</tr>';
     $("#events > tbody").prepend(html)
 
