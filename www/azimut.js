@@ -46,10 +46,10 @@ function revealElement(element) {
     }
     var event = EVENTS[uid];
     if (event) {
-      MAP.setView([event.latitude, event.longitude]);
       if (MAP.getZoom() == ZOOM_DEFAULT) {
         MAP.setZoom(ZOOM_REVEAL);
       }
+      MAP.setView([event.latitude, event.longitude]);
     }
   } else {
     revealElement(getUid(element));
@@ -120,7 +120,7 @@ function logEvent(uid, event) {
 
 function refreshMap() {
   $.getJSON(REST_API_EVENTS, function(data) {
-    if (data.status === "OK") {
+    if (data.status === "OK" && data.result.length > 0) {
       console.log("Received " + data.result.length + " events");
       data.result.sort(function(a, b) {
         return a.timestamp > b.timestamp;
@@ -130,8 +130,8 @@ function refreshMap() {
         if (event.device.length > 0 && event.timestamp > 0) {
           var uid = getUid(event);
           if (!EVENTS[uid]) {
-            elementToReveal = event;
             logEvent(uid, event);
+            elementToReveal = event;
           }
         }
       });
@@ -298,7 +298,8 @@ L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token='
     '<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
     'Imagery &copy; <a href="http://mapbox.com">Mapbox</a>',
   id: 'mapbox.streets'
-}).on("load", refreshMap).addTo(MAP);
+}).addTo(MAP);
 
 // Refresh map every minute
-setInterval(refreshMap, 2000);
+setInterval(refreshMap, 60000);
+refreshMap();
