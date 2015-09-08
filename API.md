@@ -33,7 +33,7 @@
 ### Parameters
 
 |Name|Type|Format|Required|Description|
-|---|---|---|---|
+|---|---|---|---|---|
 |device|string| [a-zA-Z0-9-_]{1,8}|*required*|Identifier of the device|
 |latitude|float|[-90; 90]|*required*|Latitude of the device|
 |longitude|float|[-360; 360]|*required*|Longitude of the device|
