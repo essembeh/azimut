@@ -33,9 +33,9 @@ First version of Azimut aims to have these features:
 
 * List *events*, position of someone at a given time with an optional message
 * Show this *events* on a map using [OpenStreetMap](http://openstreetmap.org) thanks to the wonderful [Leaflet](http://leafletjs.com/) project
-* Resolve latitude longitude in place name using [Nominatim](https://nominatim.openstreetmap.org/)
+* Resolve latitude longitude in place name using [Nominatim](https://nominatim.openstreetmap.org/) (can be disabled)
 * Responsive website
-* Share current position using HTML5 geolocation API
+* Share current position from website using HTML5 geolocation API  (can be disabled)
 * [REST API](API.md) to easily connect your Azimut with other applications
 * Auto clean database, **you decide how long you keep events**
 
