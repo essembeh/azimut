@@ -18,7 +18,7 @@ The latest version is available for  [here](http://azimut.byethost11.com/)
 *Warning, this is a free PHP hosting service, everything is public, there is no SSL nor authentication.*
 
 ## Docker
-A docker image is (will be) automatically created, so you can test the latest version of Azimut with:
+A docker image is automatically created, so you can test the latest version of Azimut with:
 ```
 docker run -p 80:80 essembeh/azimut
 ```
@@ -36,7 +36,7 @@ First version of Azimut aims to have these features:
 * Resolve latitude longitude in place name using [Nominatim](https://nominatim.openstreetmap.org/)
 * Responsive website
 * Share current position using HTML5 geolocation API
-* REST API to easily connect your Azimut with other applications
+* [REST API](API.md) to easily connect your Azimut with other applications
 * Auto clean database, **you decide how long you keep events**
 
 ## Security
