@@ -1,7 +1,8 @@
 var L = window.L;
 
 // Config
-var DISABLE_LOCATION_RESOLVING = false;
+var ENABLE_LOCATION_RESOLVING = true;
+var ENABLE_SHARE_FORM = true;
 var MAPBOX_TOKEN = "pk.eyJ1IjoiYXppbXV0IiwiYSI6ImU5MmY0OTQzODQ2ZmU5MmQ2YThjNDM4OTIxMDdkZDA2In0.cIGIE_njjGcHDSfpB2U-8Q"
 var REST_API_EVENTS = "api/events";
 var REST_API_SHARE = "api/share";
@@ -12,294 +13,153 @@ var DEFAULT_SHARE_USER = "";
 var DEFAULT_SHARE_MESSAGE = "";
 
 // Globals
-var EVENTS = {};
-var MARKERS = {};
-var LOCATIONS = {};
+var EVENTS = new Map();
+var NOMINATIM_CACHE = new Map();
 var MAP;
 
 function getUrlParameter(key) {
-  var pageUrl = decodeURIComponent(window.location.search.substring(1)),
-    urlVariables = pageUrl.split('&'),
-    pair,
-    i;
-  for (i = 0; i < urlVariables.length; i++) {
-    var pair = urlVariables[i].split('=');
-    if (pair[0] === key) {
-      return pair[1] === undefined ? true : pair[1];
-    }
-  }
+	var pageUrl = decodeURIComponent(window.location.search.substring(1)),
+		urlVariables = pageUrl.split('&'),
+		pair, i;
+	for (i = 0; i < urlVariables.length; i++) {
+		var pair = urlVariables[i].split('=');
+		if (pair[0] === key) {
+			return pair[1] === undefined ? true : pair[1];
+		}
+	}
 };
 
 function getUid(event) {
-  if (typeof event === 'object' && event.hasOwnProperty("device") && event.hasOwnProperty("timestamp")) {
-    return event.device.replace(/[^a-zA-Z0-9]/, "") + "-" + event.timestamp;
-  }
-  return null;
+	if (typeof event === 'object' && event.hasOwnProperty("device") && event.hasOwnProperty("timestamp")) {
+		return event.device.replace(/[^a-zA-Z0-9]/, "") + "-" + event.timestamp;
+	}
+	return null;
 }
 
 function revealElement(element) {
-  if (element && typeof element === 'string') {
-    var uid = element;
-    var marker = MARKERS[uid];
-    if (marker) {
-      marker.openPopup();
-    }
-    var event = EVENTS[uid];
-    if (event) {
-      if (MAP.getZoom() == ZOOM_DEFAULT) {
-        MAP.setZoom(ZOOM_REVEAL);
-      }
-      MAP.setView([event.latitude, event.longitude]);
-    }
-  } else {
-    revealElement(getUid(element));
-  }
+	if (element && typeof element === 'string') {
+		if (EVENTS.has(element)) {
+			revealElement(EVENTS.get(element));
+		}
+	} else if (element && element.hasOwnProperty("latitude") && element.hasOwnProperty("longitude")) {
+		if (element.hasOwnProperty("marker")) {
+			element.marker.openPopup();
+		}
+		if (MAP.getZoom() == ZOOM_DEFAULT) {
+			MAP.setZoom(ZOOM_REVEAL);
+		}
+		MAP.setView([element.latitude, element.longitude]);
+	}
 }
 
-function updatePlaceName(tableRowId, latlon) {
-  if (LOCATIONS[latlon]) {
-    $("#" + tableRowId + " .az-event-place .az-event-place-name").html("<small>" + LOCATIONS[latlon] + "</small>");
-    $("#" + tableRowId + " .az-event-place .az-event-place-latlon").hide({
-      duration: 500,
-      complete: function() {
-        $("#" + tableRowId + " .az-event-place .az-event-place-name").show({
-          duration: 500
-        });
-      }
-    });
-    return true;
-  }
-  return false;
+function updatePlaceName(tableRowId, nominatimResult) {
+	if (nominatimResult && nominatimResult.hasOwnProperty("display_name")) {
+		$("#" + tableRowId + " .az-event-place .az-event-place-name").html("<small>" + nominatimResult.display_name + "</small>");
+		$("#" + tableRowId + " .az-event-place .az-event-place-latlon").hide({
+			duration: 0,
+			complete: function() {
+				$("#" + tableRowId + " .az-event-place .az-event-place-name").show({
+					duration: 500
+				});
+			}
+		});
+	}
 }
 
-function logEvent(uid, event) {
-  var date = new Date(event.timestamp * 1000);
-  var longDate = moment(date).format('LLL');
-  var shortDate = moment(date).fromNow();
-  var latlon = [event.latitude, event.longitude];
-  var tableRowId = "event-" + uid;
-  var message = event.message.replace(/<.*?>/, '');
+function processEvent(event) {
+	var date = new Date(event.timestamp * 1000);
+	event.longDate = moment(date).format('LLL');
+	event.shortDate = moment(date).fromNow();
+	var latlon = [event.latitude, event.longitude];
+	var tableRowId = "event-" + event.uid;
+	var cleanMessage = event.message.replace(/<.*?>/, '');
 
-  // Keep event
-  EVENTS[uid] = event;
+	// Create marker
+	event.marker = L.marker(latlon).addTo(MAP).bindPopup("<i>" + event.shortDate + "</i><br/><b>" + event.device + "</b>: " + cleanMessage);
 
-  // Add marker
-  MARKERS[uid] = L.marker(latlon).addTo(MAP).bindPopup("<i>" + shortDate + "</i><br/><b>" + event.device + "</b>: " + message);
+	// Update table
+	var html = '<tr id="' + tableRowId + '" onclick="revealElement(\'' + event.uid + '\')">' +
+		'<td class="az-event-date col-md-1"><abbr title="' + event.longDate + '"><small>' + event.shortDate + '</small></abbr></td>' +
+		'<td class="az-event-device col-md-1"><small>' + event.device + '</small></td>' +
+		'<td class="az-event-place col-md-4">' +
+		' <span class="az-event-place-latlon"><small>' + latlon + '</small></span>' +
+		' <span class="az-event-place-name" hidden="true"></span>' +
+		'</td>' +
+		'<td class="az-event-message col-md-2"><small>' + cleanMessage + '</small></td>' +
+		'</tr>';
+	$("#events > tbody").prepend(html)
 
-  // Update table
+	// resolve lat lon
+	if (ENABLE_LOCATION_RESOLVING && getUrlParameter("resolve") != "false") {
+		var nominatimUrl = "http://nominatim.openstreetmap.org/reverse?format=json&lat=" + event.latitude + "&lon=" + event.longitude;
+		if (NOMINATIM_CACHE.has(nominatimUrl)) {
+			updatePlaceName(tableRowId, NOMINATIM_CACHE.get(nominatimUrl));
+		} else {
+			console.log("Nominatim request: " + nominatimUrl);
+			$.getJSON(nominatimUrl, function(result) {
+				NOMINATIM_CACHE.set(nominatimUrl, result);
+				updatePlaceName(tableRowId, result);
+			}).fail(function() {
+				console.log("Error requesting place: " + nominatimUrl);
+			});
+		}
+	}
+}
 
-  var html = '<tr id="' + tableRowId + '" onclick="revealElement(\'' + uid + '\')">' +
-    '<td class="az-event-date col-md-1"><abbr title="' + longDate + '"><small>' + shortDate + '</small></abbr></td>' +
-    '<td class="az-event-device col-md-1"><small>' + event.device + '</small></td>' +
-    '<td class="az-event-place col-md-4">' +
-    ' <span class="az-event-place-latlon"><small>' + latlon + '</small></span>' +
-    ' <span class="az-event-place-name" hidden="true"></span>' +
-    '</td>' +
-    '<td class="az-event-message col-md-2"><small>' + message + '</small></td>' +
-    '</tr>';
-  $("#events > tbody").prepend(html)
-
-  // resolve lat lon
-  if (!DISABLE_LOCATION_RESOLVING && getUrlParameter("resolve") != "false") {
-    if (!updatePlaceName(tableRowId, latlon)) {
-      var placeUrl = "http://nominatim.openstreetmap.org/reverse?format=json&lat=" + event.latitude + "&lon=" + event.longitude;
-      console.log("Request location: " + placeUrl);
-      $.getJSON(placeUrl, function(result) {
-        event.place = result;
-        if (result.display_name) {
-          LOCATIONS[latlon] = result.display_name;
-          updatePlaceName(tableRowId, latlon);
-        }
-      }).fail(function() {
-        console.log("Error requesting place");
-      });
-    }
-  }
-
+function clearMap() {
+	// Remove markers
+	EVENTS.forEach(function(value, key, map) {
+		MAP.removeLayer(value.marker);
+	});
+	// Remove events from table
+	$("#events > tbody").empty();
+	// Clear map
+	EVENTS.clear();
 }
 
 function refreshMap() {
-  $.getJSON(REST_API_EVENTS, function(data) {
-    if (data.status === "OK" && data.result.length > 0) {
-      console.log("Received " + data.result.length + " events");
-      data.result.sort(function(a, b) {
-        return a.timestamp > b.timestamp;
-      })
-      var elementToReveal = null;
-      $.each(data.result, function(key, event) {
-        if (event.device.length > 0 && event.timestamp > 0) {
-          var uid = getUid(event);
-          if (!EVENTS[uid]) {
-            logEvent(uid, event);
-            elementToReveal = event;
-          }
-        }
-      });
-      if (elementToReveal) {
-        revealElement(elementToReveal);
-      }
-    } else {
-      console.log(data.status)
-    }
-  });
+	clearMap();
+	$.getJSON(REST_API_EVENTS, function(data) {
+		if (data.status === "OK") {
+			// Sort, oldest first
+			data.result.sort(function(a, b) {
+				return a.timestamp > b.timestamp;
+			})
+			var elementToReveal = null;
+			$.each(data.result, function(key, event) {
+				if (event.device.length > 0 && event.timestamp > 0) {
+					if (!event.hasOwnProperty("uid")) {
+						event.uid = getUid(event);
+					}
+					// Keep event
+					EVENTS.set(event.uid, event);
+					processEvent(event);
+					elementToReveal = event;
+				}
+			});
+			revealElement(elementToReveal);
+		} else {
+			console.log("Error getting events: " + data.status)
+		}
+	});
 }
 
-function shareFormUpdatePosition() {
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(function(position) {
-      console.log("Received position: " + JSON.stringify(position));
-      $("#share-latitude").val(position.coords.latitude);
-      $("#share-longitude").val(position.coords.longitude);
-    }, function(error) {
-      switch (error.code) {
-        case error.PERMISSION_DENIED:
-          console.log("User denied the request for Geolocation.");
-          break;
-        case error.POSITION_UNAVAILABLE:
-          console.log("Location information is unavailable.");
-          break;
-        case error.TIMEOUT:
-          console.log("The request to get user location timed out.");
-          break;
-        case error.UNKNOWN_ERROR:
-          console.log("An unknown error occurred.");
-          break;
-      }
-      $("#share-latitude").val(POSITION_DEFAULT[0]);
-      $("#share-longitude").val(POSITION_DEFAULT[1]);
-    });
-  } else {
-    console.log("Geolocation is not supported by this browser.");
-  }
-}
 
-function shareFormValidate(device, message, latitude, longitude) {
-  // Check device
-  var out = true;
-  if (device == null || device.length == 0) {
-    console.log("validation failed for device");
-    out = false;
-  }
-  if (!$.isNumeric(latitude)) {
-    console.log("validation failed for latitude: " + latitude);
-    out = false;
-  }
-  if (!$.isNumeric(longitude)) {
-    console.log("validation failed for longitude: " + longitude);
-    out = false;
-  }
-  return out;
+// Check share form disabled
+if (!ENABLE_SHARE_FORM) {
+	$("#share-button").remove();
 }
-
-function shareFormSubmit() {
-  var device = $.trim($("#share-device").val());
-  var message = $.trim($("#share-message").val());
-  var latitude = $("#share-latitude").val();
-  var longitude = $("#share-longitude").val();
-  if (shareFormValidate(device, message, latitude, longitude)) {
-    console.log("Share location => " + device + ": " + message + " (" + latitude + "/" + longitude + ")");
-    $.get(REST_API_SHARE, {
-      device: device,
-      message: message,
-      latitude: latitude,
-      longitude: longitude
-    }).done(function(data) {
-      if (data.status === "OK") {
-        console.log("Position shared");
-        // Close modal
-        $("#share-modal").modal("hide");
-        refreshMap();
-        DEFAULT_SHARE_USER = device;
-        DEFAULT_SHARE_MESSAGE = message;
-      } else {
-        alert("Error sharing position (" + data.status + ")");
-        console.log(JSON.stringify(data));
-      }
-    });
-  }
-}
-
-function openShareDialog() {
-  var shareDialog = bootbox.dialog({
-    title: "Share your location",
-    message: '<div class="row">  ' +
-      '<div class="col-md-12"> ' +
-      ' <form class="form-horizontal" id="share-form"> ' +
-      ' <div class="form-group"> ' +
-      '  <label class="col-md-4 control-label" for="share-device">Name</label> ' +
-      '  <div class="col-md-8"> ' +
-      '   <input id="share-device" name="share-device" type="text" placeholder="Your name (12 characters max, no space)" class="form-control input-md" required pattern="[a-zA-Z0-9-_]{1,12}" value="' + DEFAULT_SHARE_USER + '"/> ' +
-      '  </div> ' +
-      ' </div> ' +
-      ' <div class="form-group"> ' +
-      '  <label class="col-md-4 control-label" for="share-message">Message</label> ' +
-      '  <div class="col-md-8"> ' +
-      '   <input id="share-message" name="share-message" type="text" placeholder="You can leave a message (32 characters max)" class="form-control input-md" pattern=".{0,32}"  value="' + DEFAULT_SHARE_MESSAGE + '"/> ' +
-      '  </div> ' +
-      ' </div> ' +
-      ' <div class="form-group"> ' +
-      '  <label class="col-md-4 control-label" for="share-device">Latitude</label> ' +
-      '  <div class="col-md-8"> ' +
-      '   <input id="share-latitude" name="share-latitude" type="text" placeholder="Your latitude" class="form-control input-md" required pattern="-?[0-9]+(\.[0-9]+)?" /> ' +
-      '  </div> ' +
-      ' </div> ' +
-      ' <div class="form-group"> ' +
-      '  <label class="col-md-4 control-label" for="share-longitude">Longitude</label> ' +
-      '  <div class="col-md-8"> ' +
-      '   <input id="share-longitude" name="share-longitude" type="text" placeholder="Your longitude" class="form-control input-md" required required pattern="-?[0-9]+(\.[0-9]+)?" /> ' +
-      '  </div> ' +
-      ' </div> ' +
-      ' <input type="submit" hidden="true" />' +
-      '</form> </div>  </div>',
-    buttons: {
-      share: {
-        label: '<span class="glyphicon glyphicon-pushpin" aria-hidden="true"></span> Share',
-        className: "btn-success",
-        callback: function() {
-          $('#share-form').find(':submit').click();
-          return false;
-        }
-      },
-      gps: {
-        label: '<span class="glyphicon glyphicon-screenshot" aria-hidden="true"></span> Position',
-        className: "btn-primary",
-        callback: function() {
-          shareFormUpdatePosition();
-          return false;
-        }
-      },
-      close: {
-        label: '<span class="glyphicon glyphicon-remove-circle" aria-hidden="true"></span> Close',
-        className: "btn-danger"
-      }
-    }
-  });
-  shareDialog.init(function() {
-    // Do not submit form, use shareFormSubmit instead
-    $('#share-form').submit(function(event) {
-      event.preventDefault();
-      shareFormSubmit();
-    });
-    shareFormUpdatePosition();
-  });
-  shareDialog.on("shown.bs.modal", function() {
-    shareDialog.attr("id", "share-modal");
-  });
-}
-
 // Init map
 MAP = L.map('map', {
-  center: POSITION_DEFAULT,
-  zoom: ZOOM_DEFAULT
+	center: POSITION_DEFAULT,
+	zoom: ZOOM_DEFAULT
 });
 L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=' + MAPBOX_TOKEN, {
-  maxZoom: 18,
-  attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
-    '<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
-    'Imagery &copy; <a href="http://mapbox.com">Mapbox</a>',
-  id: 'mapbox.streets'
+	maxZoom: 18,
+	attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
+		'<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
+		'Imagery &copy; <a href="http://mapbox.com">Mapbox</a>',
+	id: 'mapbox.streets'
 }).addTo(MAP);
 
-// Refresh map every minute
-setInterval(refreshMap, 60000);
 refreshMap();
