@@ -13,7 +13,7 @@ It is *free* (as free beer) and open-source so you can modify it as you want.
 # Try it!
 
 ## Demo
-The latest version is available for  [here](http://azimut.byethost11.com/)
+**The demo website is no longer available as I haven't found a free reliable web hosting solution with PHP5 and SQLite3!**
 
 *Warning, this is a free PHP hosting service, everything is public, there is no SSL nor authentication.*
 
@@ -22,7 +22,7 @@ A docker image is automatically created, so you can test the latest version of A
 ```
 docker run -p 80:80 essembeh/azimut
 ```
-Then go to http://localhost/
+Then go to [http://localhost/](http://localhost/)
 
 ## Install on your server
 See the [installation guide](INSTALL.md)
