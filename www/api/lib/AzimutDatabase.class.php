@@ -3,21 +3,29 @@ require(dirname(__FILE__)."/config.php");
 
 class AzimutDatabase {
 
+  const REGEX_DEVICE = "/^[[:alnum:]-_]{1,12}$/";
+  const REGEX_MESSAGE = "/^[^<>]{0,32}$/";
   const TABLE_EVENTS = "events";
-  const KEY_TIMESTAMP = "timestamp";
-  const KEY_DEVICE = "device";
-  const KEY_LATITUDE = "latitude";
-  const KEY_LONGITUDE = "longitude";
-  const KEY_MESSAGE = "message";
+  const FIELD_TIMESTAMP = "timestamp";
+  const FIELD_DEVICE = "device";
+  const FIELD_LATITUDE = "latitude";
+  const FIELD_LONGITUDE = "longitude";
+  const FIELD_MESSAGE = "message";
 
   var $database;
 
   function open() {
-    defined("DATABASE_PATH") or die ("No databse defined");
-    file_exists(DATABASE_PATH) or die ("Cannot find database");
+    if (!defined("DATABASE_PATH")) {
+      throw new Exception("No databse defined");
+    }
+    if (!file_exists(DATABASE_PATH)) {
+      throw new Exception("Cannot find database");
+    }
     if (!isset($this->database)) {
       $this->database = new SQLite3(DATABASE_PATH);
-      isset($this->database) or die ("Error opening database");
+      if (!isset($this->database)) {
+        throw new Exception("Error opening database");
+      }
     }
     return $this->database;
   }
@@ -36,34 +44,42 @@ class AzimutDatabase {
     $out = array();
     $row;
     while ($row = $results->fetchArray()) {
-        $out[$i][AzimutDatabase::KEY_TIMESTAMP] = $row[AzimutDatabase::KEY_TIMESTAMP];
-        $out[$i][AzimutDatabase::KEY_DEVICE]    = $row[AzimutDatabase::KEY_DEVICE];
-        $out[$i][AzimutDatabase::KEY_LATITUDE]  = $row[AzimutDatabase::KEY_LATITUDE];
-        $out[$i][AzimutDatabase::KEY_LONGITUDE] = $row[AzimutDatabase::KEY_LONGITUDE];
-        $out[$i][AzimutDatabase::KEY_MESSAGE]   = $row[AzimutDatabase::KEY_MESSAGE];
+        $out[$i][AzimutDatabase::FIELD_TIMESTAMP] = $row[AzimutDatabase::FIELD_TIMESTAMP];
+        $out[$i][AzimutDatabase::FIELD_DEVICE]    = $row[AzimutDatabase::FIELD_DEVICE];
+        $out[$i][AzimutDatabase::FIELD_LATITUDE]  = $row[AzimutDatabase::FIELD_LATITUDE];
+        $out[$i][AzimutDatabase::FIELD_LONGITUDE] = $row[AzimutDatabase::FIELD_LONGITUDE];
+        $out[$i][AzimutDatabase::FIELD_MESSAGE]   = $row[AzimutDatabase::FIELD_MESSAGE];
         $i++;
     }
     return $out;
   }
 
   function checkValues($timestamp, $device, $latitude, $longitude, $message) {
-    return is_integer($timestamp) && $timestamp >= 0 &&
-            is_string($device) && preg_match("/^[[:alnum:]-_]{1,12}$/", $device) &&
-            is_string($message) && preg_match("/^[[:print:]]{0,32}$/", $message) &&
-            is_real($latitude) && $latitude >= -90 && $latitude <= 90 &&
-            is_real($longitude) && $longitude >= -360 && $longitude <= 360;
+    if (!is_integer($timestamp) || $timestamp <= 0) {
+      throw new Exception("Timestamp must be a a positive integer");
+    } elseif (!is_string($device) ||!preg_match(AzimutDatabase::REGEX_DEVICE, $device)) {
+      throw new Exception("The field '".AzimutDatabase::FIELD_DEVICE."' must match ".AzimutDatabase::REGEX_DEVICE);
+    } elseif (!is_string($message) ||!preg_match(AzimutDatabase::REGEX_MESSAGE, $message)) {
+      throw new Exception("The field '".AzimutDatabase::FIELD_MESSAGE."' must match ".AzimutDatabase::REGEX_MESSAGE);
+    } elseif (!is_real($latitude) || $latitude < -90 || $latitude > 90) {
+      throw new Exception("The field '".AzimutDatabase::FIELD_LATITUDE."' must be a float between -90 and 90");
+    } elseif (!is_real($longitude) || $longitude < -360 || $longitude > 360) {
+      throw new Exception("The field '".AzimutDatabase::FIELD_LONGITUDE."' must be a float between -360 and 360");
+    }
   }
 
   function writeEvent ($timestamp, $device, $latitude, $longitude, $message) {
-    $this->checkValues($timestamp, $device, $latitude, $longitude, $message) or die ("Invalid arguments");
+    $this->checkValues($timestamp, $device, $latitude, $longitude, $message);
     $this->open();
-    $query = "INSERT INTO ".AzimutDatabase::TABLE_EVENTS."('".AzimutDatabase::KEY_TIMESTAMP."', '".AzimutDatabase::KEY_DEVICE."', '".AzimutDatabase::KEY_LATITUDE."', '".AzimutDatabase::KEY_LONGITUDE."', '".AzimutDatabase::KEY_MESSAGE."') ".
+    $query = "INSERT INTO ".AzimutDatabase::TABLE_EVENTS."('".AzimutDatabase::FIELD_TIMESTAMP."', '".AzimutDatabase::FIELD_DEVICE."', '".AzimutDatabase::FIELD_LATITUDE."', '".AzimutDatabase::FIELD_LONGITUDE."', '".AzimutDatabase::FIELD_MESSAGE."') ".
         "VALUES(".$timestamp.", '".SQLite3::escapeString($device)."', ".$latitude.", ".$longitude.", '".SQLite3::escapeString($message)."')";
     return $this->database->exec($query);
   }
 
   function purge ($oldestTimestamp) {
-    is_integer($oldestTimestamp) or die ("Illegal argument");
+    if (!is_integer($oldestTimestamp)) {
+      throw new Exception("Illegal argument when purging database");
+    }
     $this->open();
       $query = "DELETE FROM ".AzimutDatabase::TABLE_EVENTS.
         " WHERE timestamp < ".$oldestTimestamp;
