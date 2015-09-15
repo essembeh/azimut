@@ -15,8 +15,7 @@ try {
 } catch (Exception $e) {
   $out['status'] = "ERROR";
   $out['message'] = $e->getMessage();
-} finally {
-  $db->close();
 }
+$db->close();
 echo json_encode($out);
 ?>
