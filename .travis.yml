@@ -1,0 +1,7 @@
+jdk:
+    - oraclejdk8
+script:
+    mvn clean install
+before_install:
+after_success:
+after_failure:
