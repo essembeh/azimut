@@ -16,6 +16,7 @@ import org.apache.commons.cli.ParseException;
  *
  */
 public class AppOptions {
+	private static final String ENV_PORT = "PORT";
 	private static final int DEFAULT_PORT = 8080;
 	private static final int DEFAULT_HISTORY = 256;
 
@@ -63,6 +64,9 @@ public class AppOptions {
 	}
 
 	public int getPort() {
+		if (System.getenv(ENV_PORT) != null) {
+			return Integer.parseInt(System.getenv(ENV_PORT));
+		}
 		return getOptionValue(PORT).map(Integer::parseInt).orElse(DEFAULT_PORT);
 	}
 

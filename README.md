@@ -35,6 +35,12 @@ Here are some feature that probably will never be implemented
 
 # Try it!
 
+## Demo
+
+A [demo website](https://nameless-hollows-33999.herokuapp.com/) is available thanks to [Heroku](https://heroku.com).
+
+## Build and install
+
 First you need Java 8
 ```shell
 $ sudo apt-get install openjdk-8-jdk  maven
