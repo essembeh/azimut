@@ -37,7 +37,7 @@ Here are some feature that probably will never be implemented
 
 ## Demo
 
-A [demo website](https://nameless-hollows-33999.herokuapp.com/) is available thanks to [Heroku](https://heroku.com).
+A [demo website](https://azimut.herokuapp.com/) is available thanks to [Heroku](https://heroku.com).
 
 ## Build and install
 
