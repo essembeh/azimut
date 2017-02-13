@@ -77,7 +77,7 @@ function processEvent(event) {
 
 	// resolve lat lon
 	if (ENABLE_LOCATION_RESOLVING && getUrlParameter("resolve") != "false") {
-		var nominatimUrl = "http://nominatim.openstreetmap.org/reverse?format=json&lat=" + event.lat + "&lon=" + event.lon;
+		var nominatimUrl = "https://nominatim.openstreetmap.org/reverse?format=json&lat=" + event.lat + "&lon=" + event.lon;
 		if (NOMINATIM_CACHE.has(nominatimUrl)) {
 			updatePlaceName(tableRowId, NOMINATIM_CACHE.get(nominatimUrl));
 		} else {
